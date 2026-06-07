@@ -22,8 +22,8 @@
 ## Folder Structure
 
 agrolink/
-├── frontend/     # React.js client
-├── backend/      # Node.js + Express API
+├── frontend/    
+├── backend/     
 ├── .gitignore
 └── README.md
 

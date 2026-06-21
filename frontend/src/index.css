@@ -1,12 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   font-family: 'Outfit', sans-serif;
   scroll-behavior: smooth;
   background-color: #f8fafc; /* Slate 50 */
   color: #1e293b; /* Slate 800 */
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+:root.dark {
+  background-color: #0f172a; /* Slate 900 */
+  color: #f1f5f9; /* Slate 100 */
+}
+
 
 /* Custom micro-animations and styles */
 .gradient-text {

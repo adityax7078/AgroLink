@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArrowRight, ShieldCheck, Sprout } from 'lucide-react';
 import heroImage from '../assets/hero.png';
 

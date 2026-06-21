@@ -1,6 +1,5 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Sprout, Mail, Phone, MapPin, Twitter, Facebook, MessageSquare, ArrowUpRight } from 'lucide-react';
+import { Sprout, Mail, Phone, MapPin, MessageSquare, ArrowUpRight } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -25,11 +24,11 @@ export default function Footer() {
               India's direct agricultural trade marketplace connecting farmers to food processing units. Promoting transparent pricing, AI-based recommendations, and hassle-free transactions.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="p-2 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-400 hover:text-white transition-all duration-200">
-                <Twitter className="h-4 w-4" />
+              <a href="#" className="p-2 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-400 hover:text-white transition-all duration-200" aria-label="Twitter">
+                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
               </a>
-              <a href="#" className="p-2 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-400 hover:text-white transition-all duration-200">
-                <Facebook className="h-4 w-4" />
+              <a href="#" className="p-2 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-400 hover:text-white transition-all duration-200" aria-label="Facebook">
+                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
               </a>
               <a href="#" className="p-2 rounded-lg bg-slate-800 hover:bg-emerald-600 text-slate-400 hover:text-white transition-all duration-200">
                 <MessageSquare className="h-4 w-4" />

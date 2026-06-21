@@ -1,4 +1,3 @@
-import React from 'react';
 import { MapPin, Scale, Tag, ArrowRight } from 'lucide-react';
 
 export default function Card({

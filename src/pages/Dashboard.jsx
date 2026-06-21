@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { LayoutDashboard, PlusCircle, CheckCircle, Clock, ShoppingBag, Sparkles, MapPin, DollarSign, Calendar, Sliders, MessageSquare } from 'lucide-react';
 
 export default function Dashboard() {

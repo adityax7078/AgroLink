@@ -1,4 +1,3 @@
-import React from 'react';
 import { Target, Users, Landmark, HeartHandshake } from 'lucide-react';
 
 export default function About() {

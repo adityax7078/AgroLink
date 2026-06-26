@@ -1,13 +1,34 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Hero from '../components/Hero';
 import Card from '../components/Card';
 import wheatImage from '../assets/crop_wheat.png';
 import potatoImage from '../assets/crop_potato.png';
 import { Leaf, ArrowRight, ShieldCheck, Cpu } from 'lucide-react';
-import { Button } from '../components/ui';
+import { Button, Loader } from '../components/ui';
 
 export default function Home() {
   const navigate = useNavigate();
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:5000/api/listings')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch listings');
+        return res.json();
+      })
+      .then(data => {
+        setListings(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching listings:', err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
   const handleBrowseMarketplace = () => {
     navigate('/dashboard');
@@ -17,28 +38,11 @@ export default function Home() {
     navigate('/dashboard');
   };
 
-  const featuredCrops = [
-    {
-      title: 'Premium Sharbati Wheat',
-      description: 'High-gluten premium Sharbati wheat, freshly harvested, sun-dried, and ready for milling.',
-      price: '2,450',
-      unit: 'quintal',
-      quantity: '120',
-      location: 'Sehore, MP',
-      badge: 'Grains',
-      image: wheatImage,
-    },
-    {
-      title: 'Organic Jyoti Potatoes',
-      description: 'Firm, high-starch Jyoti potatoes, perfect for manufacturing potato chips and starches.',
-      price: '1,800',
-      unit: 'quintal',
-      quantity: '250',
-      location: 'Nashik, Maharashtra',
-      badge: 'Tubers',
-      image: potatoImage,
-    },
-  ];
+  const getCropImage = (cropType) => {
+    if (cropType === 'Wheat') return wheatImage;
+    if (cropType === 'Potato') return potatoImage;
+    return null;
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50/30 dark:bg-slate-950/20 transition-colors duration-300">
@@ -105,23 +109,38 @@ export default function Home() {
         </div>
 
         {/* Listings Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
-          {featuredCrops.map((crop, idx) => (
-            <Card
-              key={idx}
-              title={crop.title}
-              description={crop.description}
-              price={crop.price}
-              unit={crop.unit}
-              quantity={crop.quantity}
-              location={crop.location}
-              badge={crop.badge}
-              image={crop.image}
-              actionText="Place Order Offer"
-              onActionClick={handleBrowseMarketplace}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader variant="spinner" size="lg" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 text-slate-550">
+            <p className="text-red-500 font-semibold mb-2">Error connecting to marketplace</p>
+            <p className="text-xs">{error}</p>
+          </div>
+        ) : listings.length === 0 ? (
+          <div className="text-center py-12 text-slate-500">
+            <p className="font-semibold">No crop listings available at the moment.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+            {listings.slice(0, 4).map((crop) => (
+              <Card
+                key={crop.id}
+                title={crop.title}
+                description={crop.description}
+                price={crop.price}
+                unit={crop.unit}
+                quantity={crop.quantity}
+                location={crop.location}
+                badge={crop.badge}
+                image={getCropImage(crop.cropType)}
+                actionText="Place Order Offer"
+                onActionClick={handleBrowseMarketplace}
+              />
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

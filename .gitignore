@@ -36,3 +36,6 @@ Thumbs.db
 # Vite Caching
 .vite/
 frontend/.vite/
+
+# Screenshots PDF (Ignore W4 screenshot PDF as requested)
+W4_FrontendBackendConnection_*.pdf

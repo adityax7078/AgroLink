@@ -1,0 +1,553 @@
+{
+  "info": {
+    "_postman_id": "893c5de6-3e74-4b51-9ef2-85c8b7468165",
+    "name": "AgroLink API Collection",
+    "description": "API collection for AgroLink crop marketplace, supporting crop listings, procurement orders, and AI valuation endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET Listings (List, Search & Filter)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/listings?q=Wheat",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "listings"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "Wheat",
+              "description": "Search keyword"
+            },
+            {
+              "key": "cropType",
+              "value": "Wheat",
+              "disabled": true
+            },
+            {
+              "key": "location",
+              "value": "Sehore",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Retrieves crop listings. Supports searching via 'q' and filtering via 'cropType' or 'location'."
+      },
+      "response": [
+        {
+          "name": "Successful Listings Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/listings?q=Wheat",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "listings"],
+              "query": [{"key": "q", "value": "Wheat"}]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ],
+          "cookie": [],
+          "body": "[\n  {\n    \"id\": 1,\n    \"title\": \"Premium Sharbati Wheat\",\n    \"description\": \"High-gluten premium Sharbati wheat, freshly harvested, sun-dried, and ready for milling.\",\n    \"price\": 2450,\n    \"unit\": \"quintal\",\n    \"quantity\": 120,\n    \"location\": \"Sehore, MP\",\n    \"badge\": \"Grains\",\n    \"image\": \"\",\n    \"farmer\": \"Ramesh Patel\",\n    \"cropType\": \"Wheat\"\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "GET Single Listing",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/listings/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "listings",
+            "1"
+          ]
+        },
+        "description": "Retrieves a single listing by ID."
+      },
+      "response": [
+        {
+          "name": "Successful Single Listing Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/listings/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "listings", "1"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ],
+          "cookie": [],
+          "body": "{\n  \"id\": 1,\n  \"title\": \"Premium Sharbati Wheat\",\n  \"description\": \"High-gluten premium Sharbati wheat, freshly harvested, sun-dried, and ready for milling.\",\n  \"price\": 2450,\n  \"unit\": \"quintal\",\n  \"quantity\": 120,\n  \"location\": \"Sehore, MP\",\n  \"badge\": \"Grains\",\n  \"image\": \"\",\n  \"farmer\": \"Ramesh Patel\",\n  \"cropType\": \"Wheat\"\n}"
+        },
+        {
+          "name": "Listing Not Found",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/listings/999",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "listings", "999"]
+            }
+          },
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ],
+          "cookie": [],
+          "body": "{\n  \"error\": \"Listing with ID 999 not found.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "POST Create Listing",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Basmati Super Fine\",\n  \"description\": \"Pure Basmati crop with excellent grain length.\",\n  \"price\": 3100,\n  \"unit\": \"quintal\",\n  \"quantity\": 150,\n  \"location\": \"Amritsar, Punjab\",\n  \"cropType\": \"Rice\",\n  \"farmer\": \"Harpreet Singh\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/listings",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "listings"
+          ]
+        },
+        "description": "Farmer publishes a new crop harvest listing."
+      },
+      "response": [
+        {
+          "name": "Successfully Created Listing",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Basmati Super Fine\",\n  \"description\": \"Pure Basmati crop with excellent grain length.\",\n  \"price\": 3100,\n  \"unit\": \"quintal\",\n  \"quantity\": 150,\n  \"location\": \"Amritsar, Punjab\",\n  \"cropType\": \"Rice\",\n  \"farmer\": \"Harpreet Singh\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/listings",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "listings"]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ],
+          "cookie": [],
+          "body": "{\n  \"id\": 5,\n  \"title\": \"Basmati Super Fine\",\n  \"description\": \"Pure Basmati crop with excellent grain length.\",\n  \"price\": 3100,\n  \"unit\": \"quintal\",\n  \"quantity\": 150,\n  \"location\": \"Amritsar, Punjab\",\n  \"badge\": \"Grains\",\n  \"image\": \"\",\n  \"farmer\": \"Harpreet Singh\",\n  \"cropType\": \"Rice\"\n}"
+        },
+        {
+          "name": "Validation Error (Bad Request)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Missing details\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/listings",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "listings"]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ],
+          "cookie": [],
+          "body": "{\n  \"error\": \"Missing required listing fields: title, price, quantity, location, and cropType are mandatory.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "PUT Update Listing",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"price\": 2500,\n  \"quantity\": 130,\n  \"location\": \"Sehore Mandi, MP\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/listings/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "listings",
+            "1"
+          ]
+        },
+        "description": "Farmer updates an existing listing details (price, volume, or location)."
+      },
+      "response": [
+        {
+          "name": "Successfully Updated Listing",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 2500,\n  \"quantity\": 130,\n  \"location\": \"Sehore Mandi, MP\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/listings/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "listings", "1"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ],
+          "cookie": [],
+          "body": "{\n  \"id\": 1,\n  \"title\": \"Premium Sharbati Wheat\",\n  \"description\": \"High-gluten premium Sharbati wheat, freshly harvested, sun-dried, and ready for milling.\",\n  \"price\": 2500,\n  \"unit\": \"quintal\",\n  \"quantity\": 130,\n  \"location\": \"Sehore Mandi, MP\",\n  \"badge\": \"Grains\",\n  \"image\": \"\",\n  \"farmer\": \"Ramesh Patel\",\n  \"cropType\": \"Wheat\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "DELETE Listing",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/listings/4",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "listings",
+            "4"
+          ]
+        },
+        "description": "Farmer deletes a listing."
+      },
+      "response": [
+        {
+          "name": "Successfully Deleted Listing",
+          "originalRequest": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/listings/4",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "listings", "4"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ],
+          "cookie": [],
+          "body": "{\n  \"message\": \"Listing with ID 4 deleted successfully.\",\n  \"id\": 4\n}"
+        }
+      ]
+    },
+    {
+      "name": "GET Orders",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/orders",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "orders"
+          ]
+        },
+        "description": "Retrieves all procurement orders/contracts."
+      },
+      "response": [
+        {
+          "name": "Successful Orders Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "orders"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ],
+          "cookie": [],
+          "body": "[\n  {\n    \"id\": \"ORD-1001\",\n    \"crop\": \"Basmati Rice\",\n    \"processor\": \"Bikanervala\",\n    \"seller\": \"Ramesh Patel\",\n    \"qty\": \"50 Quintals\",\n    \"total\": \"₹1,60,000\",\n    \"status\": \"Delivered\",\n    \"date\": \"15 Jun 2026\"\n  }\n]"
+        }
+      ]
+    },
+    {
+      "name": "POST Place Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"crop\": \"Organic Jyoti Potatoes\",\n  \"processor\": \"Haldiram Foods\",\n  \"seller\": \"Sanjay Deshmukh\",\n  \"qty\": \"100 Quintals\",\n  \"total\": \"₹1,80,000\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/orders",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "orders"
+          ]
+        },
+        "description": "Processor places an order offer for a crop listing."
+      },
+      "response": [
+        {
+          "name": "Successfully Placed Order",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crop\": \"Organic Jyoti Potatoes\",\n  \"processor\": \"Haldiram Foods\",\n  \"seller\": \"Sanjay Deshmukh\",\n  \"qty\": \"100 Quintals\",\n  \"total\": \"₹1,80,000\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/orders",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "orders"]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ],
+          "cookie": [],
+          "body": "{\n  \"id\": \"ORD-5832\",\n  \"crop\": \"Organic Jyoti Potatoes\",\n  \"processor\": \"Haldiram Foods\",\n  \"seller\": \"Sanjay Deshmukh\",\n  \"qty\": \"100 Quintals\",\n  \"total\": \"₹1,80,000\",\n  \"status\": \"Pending\",\n  \"date\": \"26 Jun 2026\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "PUT Update Order Status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"Accepted\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/api/orders/ORD-1003",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "orders",
+            "ORD-1003"
+          ]
+        },
+        "description": "Farmer updates status of received order to 'Accepted', 'Rejected', or 'Delivered'."
+      },
+      "response": [
+        {
+          "name": "Successfully Updated Order Status",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Accepted\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/orders/ORD-1003",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "orders", "ORD-1003"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ],
+          "cookie": [],
+          "body": "{\n  \"id\": \"ORD-1003\",\n  \"crop\": \"Sharbati Wheat\",\n  \"processor\": \"ITC Limited\",\n  \"seller\": \"Ramesh Patel\",\n  \"qty\": \"80 Quintals\",\n  \"total\": \"₹1,96,000\",\n  \"status\": \"Accepted\",\n  \"date\": \"20 Jun 2026\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "GET AI Price Suggestion",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/api/ai/pricing?cropType=Wheat&quantity=100",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "api",
+            "ai",
+            "pricing"
+          ],
+          "query": [
+            {
+              "key": "cropType",
+              "value": "Wheat"
+            },
+            {
+              "key": "quantity",
+              "value": "100"
+            }
+          ]
+        },
+        "description": "Calculates regional price suggestion ranges, trends, and market demands based on crop type and volume."
+      },
+      "response": [
+        {
+          "name": "Successful AI Valuation Response",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/ai/pricing?cropType=Wheat&quantity=100",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "ai", "pricing"],
+              "query": [
+                { "key": "cropType", "value": "Wheat" },
+                { "key": "quantity", "value": "100" }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+          ],
+          "cookie": [],
+          "body": "{\n  \"crop\": \"Wheat\",\n  \"quantity\": 100,\n  \"min\": 2200,\n  \"max\": 2420,\n  \"marketTrend\": \"Bullish (+4.2% this week)\",\n  \"demandLevel\": \"High\",\n  \"factors\": \"Analysis notes: Calculated based on regional seasonal rainfall indices, warehousing stocks in local mandis, and factory procurement demand projections for Wheat.\"\n}"
+        }
+      ]
+    }
+  ]
+}

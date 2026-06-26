@@ -56,5 +56,32 @@ To run the React frontend skeleton locally:
 4. **Verify Lints & Production Compilation**:
    ```bash
    npm run lint
-   * npm run build
+   npm run build
    ```
+
+### Backend Setup & Development
+
+To run the Node.js/Express backend server locally:
+
+1. **Navigate to the backend folder**:
+   ```bash
+   cd backend
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Verify the environment configuration**:
+   Verify that a `.env` file exists (automatically initialized with `PORT=5000`). If missing:
+   ```bash
+   copy .env.example .env
+   ```
+
+4. **Run the API server in development mode**:
+   ```bash
+   npm run dev
+   ```
+   The backend will boot up and start listening on `http://localhost:5000` with hot-reloading active.
+

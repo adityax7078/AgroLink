@@ -40,3 +40,17 @@ frontend/.vite/
 # Screenshots and API Collections
 *.pdf
 W4_APICollection_*.json
+
+# Automation scripts for PDFs and screenshots
+capture.py
+capture_w4.py
+generate_wireframes.py
+generate_svgs.py
+paste_wireframes.py
+wireframes_svg/
+
+# Root level screenshots
+/*.png
+
+# Python Cache
+__pycache__/

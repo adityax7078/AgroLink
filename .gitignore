@@ -37,5 +37,6 @@ Thumbs.db
 .vite/
 frontend/.vite/
 
-# Screenshots PDF (Ignore W4 screenshot PDF as requested)
-W4_FrontendBackendConnection_*.pdf
+# Screenshots and API Collections
+*.pdf
+W4_APICollection_*.json

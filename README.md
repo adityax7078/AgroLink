@@ -31,7 +31,44 @@ agrolink/
 
 ---
 
+## Database Design & Integration
+
+### Database Choice: MySQL
+We chose **MySQL** for the following reasons:
+1. **Relational Data Structure**: Our primary entities (`Listing` and `Order`) are highly structured with relational logic. Listings belong to farmers, and orders match processors to sellers and crops, requiring strong relational consistency.
+2. **Local Standard**: MySQL is a robust, widely adopted enterprise relational database engine running locally, allowing seamless access and administration via **MySQL Workbench**.
+3. **ORM Integration**: We integrated **Prisma ORM** to connect the Node.js/Express backend with MySQL. Prisma provides type-safe queries, automatic migration files, and clean schema-to-database synchronization.
+
+### Schema Diagram
+Below is the database model mapping the tables, column types, keys, and logical relationships:
+
+![AgroLink Database Schema Diagram](./W5_SchemaDiagram_26101094.png)
+
+---
+
 ## Getting Started
+
+### Database Setup & Migrations
+
+Before launching the servers, set up the MySQL database:
+
+1. **Verify MySQL Server**: Ensure MySQL server is running on `localhost:3306` (e.g. via MySQL Workbench or Windows services).
+2. **Create the Database**: Open MySQL Workbench or your terminal and execute:
+   ```sql
+   CREATE DATABASE IF NOT EXISTS agrolink_db;
+   ```
+3. **Configure Environment Variables**:
+   Verify that a `.env` file exists in the `backend` folder. Add the `DATABASE_URL` connection string:
+   ```env
+   PORT=5000
+   DATABASE_URL="mysql://root:YOUR_PASSWORD@localhost:3306/agrolink_db"
+   ```
+4. **Push Schema and Generate Client**:
+   Navigate to the `backend` folder and run:
+   ```bash
+   npx prisma db push
+   ```
+   *Note: On backend startup, the database is automatically seeded with default listing and order records if tables are empty.*
 
 ### Frontend Setup & Development
 
@@ -56,7 +93,6 @@ To run the React frontend skeleton locally:
 4. **Verify Lints & Production Compilation**:
    ```bash
    npm run lint
-   npm run build
    ```
 
 ### Backend Setup & Development

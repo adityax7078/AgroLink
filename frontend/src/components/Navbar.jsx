@@ -1,21 +1,53 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Sprout, Menu, X, User, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const [user, setUser] = useState(null);
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
+  // Sync user state from localStorage
+  const syncUser = () => {
+    try {
+      const stored = localStorage.getItem('user');
+      setUser(stored ? JSON.parse(stored) : null);
+    } catch (e) {
+      setUser(null);
+    }
+  };
+
+  useEffect(() => {
+    syncUser();
+    
+    // Listen for custom storage updates in the same window
+    window.addEventListener('storage', syncUser);
+    return () => window.removeEventListener('storage', syncUser);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    setIsOpen(false);
+    navigate('/');
+    // Trigger storage event so other tabs/components update
+    window.dispatchEvent(new Event('storage'));
+  };
+
+  // Dynamically filter NavItems: remove Login item if logged in
   const navItems = [
     { name: 'Home', path: '/' },
     { name: 'Marketplace', path: '/dashboard' },
     { name: 'About Us', path: '/about' },
-    { name: 'Portal Login', path: '/login' },
   ];
 
+  if (!user) {
+    navItems.push({ name: 'Portal Login', path: '/login' });
+  }
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300">
@@ -61,13 +93,29 @@ export default function Navbar() {
             >
               {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
-            <NavLink
-              to="/login"
-              className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200 shadow-sm"
-            >
-              <User className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-              <span>Sign In</span>
-            </NavLink>
+            
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold max-w-[120px] truncate" title={user.email}>
+                  {user.email.split('@')[0]} ({user.role})
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 px-4 py-2 border border-red-200 dark:border-red-900/40 rounded-full text-sm font-medium text-red-600 dark:text-red-450 hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-300 transition-all duration-200 shadow-sm focus:outline-none cursor-pointer"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <NavLink
+                to="/login"
+                className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200 shadow-sm"
+              >
+                <User className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                <span>Sign In</span>
+              </NavLink>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -118,14 +166,27 @@ export default function Navbar() {
             </NavLink>
           ))}
           <div className="pt-4 pb-2 border-t border-slate-100 dark:border-slate-800 px-3">
-            <NavLink
-              to="/login"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
-            >
-              <User className="h-4 w-4" />
-              <span>Portal Login</span>
-            </NavLink>
+            {user ? (
+              <div className="flex flex-col gap-2">
+                <span className="text-xs text-slate-500 text-center truncate px-2">{user.email} ({user.role})</span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm focus:outline-none cursor-pointer"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <NavLink
+                to="/login"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+              >
+                <User className="h-4 w-4" />
+                <span>Portal Login</span>
+              </NavLink>
+            )}
           </div>
         </div>
       </div>

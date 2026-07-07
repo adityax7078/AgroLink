@@ -6,7 +6,20 @@ export default function Dashboard() {
   const { addToast } = useToast();
   const [role, setRole] = useState(() => {
     const params = new URLSearchParams(window.location.search);
-    return params.get('role') === 'processor' ? 'processor' : 'farmer';
+    const urlRole = params.get('role');
+    if (urlRole === 'farmer' || urlRole === 'processor') {
+      return urlRole;
+    }
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        const userObj = JSON.parse(stored);
+        if (userObj.role === 'farmer' || userObj.role === 'processor') {
+          return userObj.role;
+        }
+      }
+    } catch (e) {}
+    return 'farmer';
   }); // 'farmer' or 'processor'
   const [showAISuggestion, setShowAISuggestion] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);

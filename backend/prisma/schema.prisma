@@ -1,0 +1,46 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Listing {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?  @db.Text
+  price       Float
+  unit        String   @default("quintal")
+  quantity    Float
+  location    String
+  badge       String?
+  image       String   @default("")
+  farmer      String   @default("Anonymous Farmer")
+  cropType    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Order {
+  id        String   @id // e.g. ORD-1002
+  crop      String
+  processor String
+  seller    String
+  qty       String
+  total     String
+  status    String   @default("Pending")
+  date      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   // Hashed password
+  role      String   // 'farmer' or 'processor'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

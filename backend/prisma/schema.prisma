@@ -1,13 +1,13 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-model Listing {
+model listing {
   id          Int      @id @default(autoincrement())
   title       String
   description String?  @db.Text
@@ -20,11 +20,11 @@ model Listing {
   farmer      String   @default("Anonymous Farmer")
   cropType    String
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime
 }
 
-model Order {
-  id        String   @id // e.g. ORD-1002
+model order {
+  id        String   @id
   crop      String
   processor String
   seller    String
@@ -33,14 +33,14 @@ model Order {
   status    String   @default("Pending")
   date      String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime
 }
 
-model User {
+model user {
   id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String   // Hashed password
-  role      String   // 'farmer' or 'processor'
+  email     String   @unique(map: "User_email_key")
+  password  String
+  role      String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime
 }

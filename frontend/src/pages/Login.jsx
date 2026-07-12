@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldAlert, KeyRound, Mail, UserCheck, Sprout } from 'lucide-react';
 import { Input, Button, useToast } from '../components/ui';
@@ -11,6 +11,32 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Handle OAuth Redirect URL parsing
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const emailParam = params.get('email');
+    const roleParam = params.get('role');
+    const idParam = params.get('id');
+    const errorParam = params.get('error');
+
+    if (errorParam) {
+      addToast('Authentication via OAuth failed. Please try again.', 'error');
+    } else if (token && emailParam && roleParam && idParam) {
+      const authUser = {
+        token,
+        email: emailParam,
+        role: roleParam,
+        id: idParam
+      };
+      localStorage.setItem('user', JSON.stringify(authUser));
+      addToast(`Successfully authenticated as ${emailParam}!`, 'success');
+      // Dispatch custom storage event to update Navbar instantly
+      window.dispatchEvent(new Event('storage'));
+      navigate('/dashboard');
+    }
+  }, [navigate, addToast]);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -163,59 +189,102 @@ export default function Login() {
 
           {/* Forms */}
           {mode === 'login' && (
-            <form onSubmit={handleLogin} className="space-y-5 text-sm">
-              <div className="space-y-4">
-                <div className="relative">
-                  <Input
-                    label="Email address"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. name@domain.com"
-                    className="w-full"
-                  />
-                  <Mail className="absolute right-3.5 top-[38px] h-4 w-4 text-slate-400 dark:text-slate-500" />
-                </div>
-
-                <div className="relative">
-                  <div className="flex justify-between items-center mb-0.5">
-                    <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Password</label>
-                    <button
-                      type="button"
-                      onClick={() => { setMode('forgot'); setPassword(''); }}
-                      className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 focus:outline-none"
-                    >
-                      Forgot?
-                    </button>
+            <>
+              <form onSubmit={handleLogin} className="space-y-5 text-sm">
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Input
+                      label="Email address"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="e.g. name@domain.com"
+                      className="w-full"
+                    />
+                    <Mail className="absolute right-3.5 top-[38px] h-4 w-4 text-slate-400 dark:text-slate-500" />
                   </div>
-                  <Input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full"
-                  />
-                  <KeyRound className="absolute right-3.5 top-[38px] h-4 w-4 text-slate-400 dark:text-slate-500" />
+
+                  <div className="relative">
+                    <div className="flex justify-between items-center mb-0.5">
+                      <label className="block text-sm font-semibold text-slate-600 dark:text-slate-300">Password</label>
+                      <button
+                        type="button"
+                        onClick={() => { setMode('forgot'); setPassword(''); }}
+                        className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 focus:outline-none"
+                      >
+                        Forgot?
+                      </button>
+                    </div>
+                    <Input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full"
+                    />
+                    <KeyRound className="absolute right-3.5 top-[38px] h-4 w-4 text-slate-400 dark:text-slate-500" />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-light">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 dark:bg-slate-800" />
+                    <span>Remember session</span>
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <UserCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>SSL Secured</span>
+                  </div>
+                </div>
+
+                <Button type="submit" className="w-full py-3.5 text-sm" id="authenticate-btn">
+                  <span>Authenticate Portal</span>
+                </Button>
+              </form>
+
+              {/* OAuth Options Divider */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                  <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white dark:bg-slate-900 px-3 text-slate-400 dark:text-slate-500 font-medium">Or continue with</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-light">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 text-emerald-600 focus:ring-emerald-500 dark:bg-slate-800" />
-                  <span>Remember session</span>
-                </label>
-                <div className="flex items-center gap-1">
-                  <UserCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                  <span>SSL Secured</span>
-                </div>
+              {/* OAuth buttons */}
+              <div className="grid grid-cols-2 gap-4">
+                <a
+                  href="http://localhost:5000/api/auth/google"
+                  id="oauth-google-btn"
+                  className="flex items-center justify-center gap-2 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-slate-350 transition-all font-semibold text-xs shadow-sm bg-white dark:bg-slate-900 cursor-pointer animate-fade-in"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24">
+                    <path
+                      fill="#EA4335"
+                      d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.99 5.99 0 0 1 8 12.5a5.99 5.99 0 0 1 5.99-6.012c1.49 0 2.858.543 3.91 1.44l3.12-3.12A9.97 9.97 0 0 0 13.99 2 9.99 9.99 0 0 0 4 12c0 5.523 4.477 10 10 10 5.13 0 9.29-3.88 9.94-8.875h-11.7Z"
+                    />
+                  </svg>
+                  <span>Google</span>
+                </a>
+                <a
+                  href="http://localhost:5000/api/auth/github"
+                  id="oauth-github-btn"
+                  className="flex items-center justify-center gap-2 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-slate-350 transition-all font-semibold text-xs shadow-sm bg-white dark:bg-slate-900 cursor-pointer animate-fade-in"
+                >
+                  <svg className="h-4 w-4 fill-current text-slate-800 dark:text-white" viewBox="0 0 24 24">
+                    <path
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                      d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z"
+                    />
+                  </svg>
+                  <span>GitHub</span>
+                </a>
               </div>
-
-              <Button type="submit" className="w-full py-3.5 text-sm">
-                <span>Authenticate Portal</span>
-              </Button>
-            </form>
+            </>
           )}
 
           {mode === 'signup' && (

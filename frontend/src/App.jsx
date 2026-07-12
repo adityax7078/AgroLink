@@ -5,6 +5,8 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import Profile from './pages/Profile';
+import ProtectedRoute from './components/ProtectedRoute';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './components/ui';
 
@@ -13,7 +15,7 @@ export default function App() {
     <ThemeProvider>
       <ToastProvider>
         <BrowserRouter>
-          <div className="flex flex-col min-h-screen bg-slate-50/20 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased transition-colors duration-300">
+          <div className="flex flex-col min-h-screen bg-slate-50/20 dark:bg-slate-955 text-slate-800 dark:text-slate-100 antialiased transition-colors duration-300">
             {/* Navbar */}
             <Navbar />
 
@@ -22,7 +24,16 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } />
                 <Route path="/login" element={<Login />} />
               </Routes>
             </main>
@@ -36,4 +47,5 @@ export default function App() {
     </ThemeProvider>
   );
 }
+
 

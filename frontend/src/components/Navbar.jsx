@@ -38,14 +38,16 @@ export default function Navbar() {
     window.dispatchEvent(new Event('storage'));
   };
 
-  // Dynamically filter NavItems: remove Login item if logged in
+  // Dynamically filter NavItems: remove Login item if logged in, add Profile item
   const navItems = [
     { name: 'Home', path: '/' },
     { name: 'Marketplace', path: '/dashboard' },
     { name: 'About Us', path: '/about' },
   ];
 
-  if (!user) {
+  if (user) {
+    navItems.push({ name: 'My Profile', path: '/profile' });
+  } else {
     navItems.push({ name: 'Portal Login', path: '/login' });
   }
 

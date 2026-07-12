@@ -42,14 +42,34 @@ export default function Dashboard() {
   // AI pricing suggestion state
   const [aiResult, setAiResult] = useState(null);
 
+  // Helper to fetch authorization headers
+  const getAuthHeaders = () => {
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        const userObj = JSON.parse(stored);
+        if (userObj.token) {
+          return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userObj.token}`
+          };
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching auth token:', e);
+    }
+    return { 'Content-Type': 'application/json' };
+  };
+
   const fetchDashboardData = () => {
     setLoading(true);
+    const headers = getAuthHeaders();
     Promise.all([
       fetch('http://127.0.0.1:5000/api/listings').then(res => {
         if (!res.ok) throw new Error('Failed to fetch listings');
         return res.json();
       }),
-      fetch('http://127.0.0.1:5000/api/orders').then(res => {
+      fetch('http://127.0.0.1:5000/api/orders', { headers }).then(res => {
         if (!res.ok) throw new Error('Failed to fetch orders');
         return res.json();
       })
@@ -105,16 +125,23 @@ export default function Dashboard() {
 
     setLoading(true);
     const title = `Premium ${cropType} Harvest`;
+    
+    let loggedInEmail = 'Anonymous Farmer';
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) loggedInEmail = JSON.parse(stored).email;
+    } catch (e) {}
+
     fetch('http://127.0.0.1:5000/api/listings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         title,
         cropType,
         quantity: Number(quantity),
         price: Number(expectedPrice),
         location,
-        farmer: 'Ramesh Patel', // Simulated logged in farmer
+        farmer: loggedInEmail,
         unit: 'quintal',
         description: `Fresh high-quality ${cropType} harvest directly from ${location}.`
       })
@@ -140,7 +167,7 @@ export default function Dashboard() {
     setLoading(true);
     fetch(`http://127.0.0.1:5000/api/orders/${orderId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ status: newStatus })
     })
       .then(res => {
@@ -162,7 +189,8 @@ export default function Dashboard() {
     if (!window.confirm('Are you sure you want to delete this listing?')) return;
     setLoading(true);
     fetch(`http://127.0.0.1:5000/api/listings/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getAuthHeaders()
     })
       .then(res => {
         if (!res.ok) throw new Error('Failed to delete listing');
@@ -195,7 +223,7 @@ export default function Dashboard() {
     setLoading(true);
     fetch(`http://127.0.0.1:5000/api/listings/${editingListing.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         price: Number(editPrice),
         quantity: Number(editQuantity),
@@ -221,12 +249,19 @@ export default function Dashboard() {
   const handlePlaceOrder = (listing) => {
     setLoading(true);
     const orderTotal = listing.price * listing.quantity;
+
+    let loggedInEmail = 'Anonymous Processor';
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) loggedInEmail = JSON.parse(stored).email;
+    } catch (e) {}
+
     fetch('http://127.0.0.1:5000/api/orders', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         crop: listing.title,
-        processor: 'Haldiram Foods', // Simulated logged in processor
+        processor: loggedInEmail,
         seller: listing.farmer,
         qty: `${listing.quantity} Quintals`,
         total: `₹${orderTotal.toLocaleString('en-IN')}`,

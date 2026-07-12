@@ -3,10 +3,19 @@ const cors = require('cors');
 require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { z } = require('zod');
+const rateLimit = require('express-rate-limit');
+const passport = require('passport');
+const GitHubStrategy = require('passport-github2').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const prisma = new PrismaClient();
+
+const JWT_SECRET = process.env.JWT_SECRET || 'agrolink_jwt_secret_26101094';
 
 // Enable CORS for frontend development server (allows any origin dynamically for local development)
 app.use(cors({
@@ -19,16 +28,195 @@ app.use(cors({
 // Parse JSON request bodies
 app.use(express.json());
 
+// Parse urlencoded request bodies (for HTML forms)
+app.use(express.urlencoded({ extended: true }));
+
 // Logger middleware for debugging requests
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
 
-// Helper to hash passwords using SHA-256
+// Helper to hash passwords using bcryptjs (10 salt rounds)
 const hashPassword = (password) => {
-  return crypto.createHash('sha256').update(password).digest('hex');
+  return bcrypt.hashSync(password, 10);
 };
+
+// Zod Validation Schemas
+const registerSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  role: z.enum(['farmer', 'processor'], { errorMap: () => ({ message: 'Role must be either farmer or processor' }) })
+});
+
+const loginSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(1, 'Password is required'),
+  role: z.enum(['farmer', 'processor'], { errorMap: () => ({ message: 'Role must be either farmer or processor' }) })
+});
+
+// Rate Limiter: max 5 login/register attempts per 15 minutes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: { error: 'Too many authentication attempts. Please try again after 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Authentication Middleware: validates token from Authorization: Bearer <token> header
+const requireAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized: Access token is missing or invalid' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Unauthorized: Access token is invalid or expired' });
+  }
+};
+
+// Passport Configuration
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
+
+const hasRealGoogleKeys = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_ID !== 'mock';
+const hasRealGithubKeys = process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_ID !== 'mock';
+
+if (hasRealGoogleKeys) {
+  passport.use(new GoogleStrategy({
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: 'http://localhost:5000/api/auth/google/callback'
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      const email = profile.emails && profile.emails[0] ? profile.emails[0].value : `${profile.id}@google.com`;
+      try {
+        let user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email,
+              password: bcrypt.hashSync(crypto.randomBytes(16).toString('hex'), 10),
+              role: 'farmer',
+              updatedAt: new Date()
+            }
+          });
+        }
+        return done(null, user);
+      } catch (err) {
+        return done(err);
+      }
+    }
+  ));
+}
+
+if (hasRealGithubKeys) {
+  passport.use(new GitHubStrategy({
+      clientID: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      callbackURL: 'http://localhost:5000/api/auth/github/callback'
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      const email = profile.emails && profile.emails[0] ? profile.emails[0].value : `${profile.username || profile.id}@github.com`;
+      try {
+        let user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email,
+              password: bcrypt.hashSync(crypto.randomBytes(16).toString('hex'), 10),
+              role: 'farmer',
+              updatedAt: new Date()
+            }
+          });
+        }
+        return done(null, user);
+      } catch (err) {
+        return done(err);
+      }
+    }
+  ));
+}
+
+app.use(passport.initialize());
+
+// Helper to serve beautiful simulated consent page
+function serveSimulatedConsentPage(req, res, provider) {
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Sign in with ${provider} - AgroLink Identity</title>
+      <script src="https://cdn.tailwindcss.com"></script>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+      <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+      </style>
+    </head>
+    <body class="bg-slate-955 text-slate-100 min-h-screen flex items-center justify-center p-4 bg-slate-900">
+      <div class="max-w-md w-full bg-slate-800 rounded-3xl border border-slate-700 shadow-2xl p-8 relative overflow-hidden">
+        <!-- Glow decorations -->
+        <div class="absolute -top-12 -left-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-12 -right-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
+
+        <div class="relative z-10 space-y-6">
+          <div class="text-center">
+            <div class="inline-flex p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl mb-4">
+              <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 009 11V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a15 15 0 003 9.672M12 11a9 9 0 00-9-9m18 0a9 9 0 01-9 9m9-9v14a2 2 0 01-2 2h-2a2 2 0 01-2-2V11"></path>
+              </svg>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight text-white">OAuth Simulation</h1>
+            <p class="text-slate-400 text-sm mt-1.5">You are authorizing <span class="text-emerald-400 font-semibold">AgroLink Marketplace</span> using <span class="font-semibold text-white">${provider}</span></p>
+          </div>
+
+          <form action="/api/auth/oauth-mock-callback" method="POST" class="space-y-4">
+            <input type="hidden" name="provider" value="${provider}">
+            
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Authorize As Email</label>
+              <input type="email" name="email" required value="oauth.tester@agrolink.com" 
+                class="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-emerald-500 transition-colors" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Select AgroLink Portal Role</label>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="border border-slate-700 bg-slate-900/50 p-3 rounded-xl flex items-center justify-between cursor-pointer hover:border-emerald-500 transition-colors">
+                  <span class="text-sm font-semibold text-slate-200">Farmer</span>
+                  <input type="radio" name="role" value="farmer" checked class="accent-emerald-500 h-4 w-4">
+                </label>
+                <label class="border border-slate-700 bg-slate-900/50 p-3 rounded-xl flex items-center justify-between cursor-pointer hover:border-emerald-500 transition-colors">
+                  <span class="text-sm font-semibold text-slate-200">Processor</span>
+                  <input type="radio" name="role" value="processor" class="accent-emerald-500 h-4 w-4">
+                </label>
+              </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-700/60 flex flex-col gap-3">
+              <button type="submit" id="mock-authorize-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-slate-950 font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 transition-all text-sm cursor-pointer">
+                Authorize AgroLink App
+              </button>
+              <a href="http://localhost:5173/login" class="w-full text-center border border-slate-700 hover:bg-slate-700/35 text-slate-400 py-3 rounded-xl transition-all text-sm">
+                Cancel
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+  res.send(html);
+}
 
 // Helper to generate badges based on crop type
 const getBadgeByCropType = (cropType) => {
@@ -172,17 +360,14 @@ async function seedDatabase() {
 // --- AUTH ENDPOINTS ---
 
 // POST /api/auth/register - Register a new user account
-app.post('/api/auth/register', async (req, res, next) => {
+app.post('/api/auth/register', authLimiter, async (req, res, next) => {
   try {
-    const { email, password, role } = req.body;
-
-    if (!email || !password || !role) {
-      return res.status(400).json({ error: 'Email, password, and role are required.' });
+    const parsed = registerSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message });
     }
 
-    if (role !== 'farmer' && role !== 'processor') {
-      return res.status(400).json({ error: 'Role must be either farmer or processor.' });
-    }
+    const { email, password, role } = parsed.data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -199,7 +384,8 @@ app.post('/api/auth/register', async (req, res, next) => {
       data: {
         email,
         password: hashedPassword,
-        role
+        role,
+        updatedAt: new Date()
       }
     });
 
@@ -209,33 +395,43 @@ app.post('/api/auth/register', async (req, res, next) => {
       role: newUser.role
     });
   } catch (error) {
+    if (error.code === 'P2002') {
+      return res.status(400).json({ error: 'An account with this email already exists.' });
+    }
     next(error);
   }
 });
 
 // POST /api/auth/login - Authenticate user
-app.post('/api/auth/login', async (req, res, next) => {
+app.post('/api/auth/login', authLimiter, async (req, res, next) => {
   try {
-    const { email, password, role } = req.body;
-
-    if (!email || !password || !role) {
-      return res.status(400).json({ error: 'Email, password, and role are required.' });
+    const parsed = loginSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.issues[0].message });
     }
 
-    const hashedPassword = hashPassword(password);
+    const { email, password, role } = parsed.data;
 
     const user = await prisma.user.findUnique({
       where: { email }
     });
 
-    if (!user || user.password !== hashedPassword || user.role !== role) {
+    if (!user || !user.password || !bcrypt.compareSync(password, user.password) || user.role !== role) {
       return res.status(401).json({ error: 'Invalid email, password, or role.' });
     }
+
+    // Sign JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
     res.status(200).json({
       id: user.id,
       email: user.email,
-      role: user.role
+      role: user.role,
+      token
     });
   } catch (error) {
     next(error);
@@ -251,6 +447,10 @@ app.post('/api/auth/forgot-password', async (req, res, next) => {
       return res.status(400).json({ error: 'Email and new password are required.' });
     }
 
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+    }
+
     const user = await prisma.user.findUnique({
       where: { email }
     });
@@ -262,12 +462,103 @@ app.post('/api/auth/forgot-password', async (req, res, next) => {
     const hashedPassword = hashPassword(newPassword);
     await prisma.user.update({
       where: { email },
-      data: { password: hashedPassword }
+      data: { password: hashedPassword, updatedAt: new Date() }
     });
 
     res.status(200).json({ message: 'Password reset successfully.' });
   } catch (error) {
     next(error);
+  }
+});
+
+// --- OAuth ENDPOINTS ---
+
+// Google authentication routes
+app.get('/api/auth/google', (req, res, next) => {
+  if (hasRealGoogleKeys) {
+    return passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  } else {
+    return serveSimulatedConsentPage(req, res, 'Google');
+  }
+});
+
+app.get('/api/auth/google/callback', (req, res, next) => {
+  if (hasRealGoogleKeys) {
+    passport.authenticate('google', { failureRedirect: 'http://localhost:5173/login?error=oauth_failed' }, (err, user) => {
+      if (err || !user) return res.redirect('http://localhost:5173/login?error=oauth_failed');
+      const token = jwt.sign(
+        { id: user.id, email: user.email, role: user.role },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+      res.redirect(`http://localhost:5173/login?token=${token}&email=${encodeURIComponent(user.email)}&role=${user.role}&id=${user.id}`);
+    })(req, res, next);
+  } else {
+    res.status(400).send('Google Strategy is not configured.');
+  }
+});
+
+// GitHub authentication routes
+app.get('/api/auth/github', (req, res, next) => {
+  if (hasRealGithubKeys) {
+    return passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
+  } else {
+    return serveSimulatedConsentPage(req, res, 'GitHub');
+  }
+});
+
+app.get('/api/auth/github/callback', (req, res, next) => {
+  if (hasRealGithubKeys) {
+    passport.authenticate('github', { failureRedirect: 'http://localhost:5173/login?error=oauth_failed' }, (err, user) => {
+      if (err || !user) return res.redirect('http://localhost:5173/login?error=oauth_failed');
+      const token = jwt.sign(
+        { id: user.id, email: user.email, role: user.role },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+      res.redirect(`http://localhost:5173/login?token=${token}&email=${encodeURIComponent(user.email)}&role=${user.role}&id=${user.id}`);
+    })(req, res, next);
+  } else {
+    res.status(400).send('GitHub Strategy is not configured.');
+  }
+});
+
+// Simulated OAuth post callback
+app.post('/api/auth/oauth-mock-callback', async (req, res, next) => {
+  try {
+    const { email, role, provider } = req.body;
+    if (!email || !role) {
+      return res.status(400).send('Email and role are required for simulated OAuth callback.');
+    }
+
+    // Find or create user
+    let user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email,
+          password: bcrypt.hashSync(crypto.randomBytes(16).toString('hex'), 10),
+          role,
+          updatedAt: new Date()
+        }
+      });
+    } else {
+      user = await prisma.user.update({
+        where: { email },
+        data: { role, updatedAt: new Date() }
+      });
+    }
+
+    // Sign JWT
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.redirect(`http://localhost:5173/login?token=${token}&email=${encodeURIComponent(user.email)}&role=${user.role}&id=${user.id}`);
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -323,7 +614,7 @@ app.get('/api/listings/:id', async (req, res, next) => {
 });
 
 // 3. POST /api/listings - Create a new listing
-app.post('/api/listings', async (req, res, next) => {
+app.post('/api/listings', requireAuth, async (req, res, next) => {
   try {
     const { title, description, price, unit, quantity, location, cropType, farmer } = req.body;
 
@@ -365,7 +656,7 @@ app.post('/api/listings', async (req, res, next) => {
 });
 
 // 4. PUT /api/listings/:id - Update an existing listing
-app.put('/api/listings/:id', async (req, res, next) => {
+app.put('/api/listings/:id', requireAuth, async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -412,7 +703,7 @@ app.put('/api/listings/:id', async (req, res, next) => {
 });
 
 // 5. DELETE /api/listings/:id - Delete a listing
-app.delete('/api/listings/:id', async (req, res, next) => {
+app.delete('/api/listings/:id', requireAuth, async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -435,7 +726,7 @@ app.delete('/api/listings/:id', async (req, res, next) => {
 });
 
 // 6. GET /api/orders - Get all procurement orders
-app.get('/api/orders', async (req, res, next) => {
+app.get('/api/orders', requireAuth, async (req, res, next) => {
   try {
     const dbOrders = await prisma.order.findMany();
     res.status(200).json(dbOrders);
@@ -445,7 +736,7 @@ app.get('/api/orders', async (req, res, next) => {
 });
 
 // 7. POST /api/orders - Place a procurement order
-app.post('/api/orders', async (req, res, next) => {
+app.post('/api/orders', requireAuth, async (req, res, next) => {
   try {
     const { crop, processor, seller, qty, total, status } = req.body;
 
@@ -485,7 +776,7 @@ app.post('/api/orders', async (req, res, next) => {
 });
 
 // 8. PUT /api/orders/:id - Update an order's status
-app.put('/api/orders/:id', async (req, res, next) => {
+app.put('/api/orders/:id', requireAuth, async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;

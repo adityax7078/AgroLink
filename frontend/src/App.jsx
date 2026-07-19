@@ -9,6 +9,7 @@ import Profile from './pages/Profile';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './components/ui';
+import AIAdvisor from './components/AIAdvisor';
 
 export default function App() {
   return (
@@ -24,6 +25,8 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
+                <Route path="/ai-advisor" element={<AIAdvisor />} />
+                <Route path="/dashboard/ai-advisor" element={<AIAdvisor />} />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <Dashboard />

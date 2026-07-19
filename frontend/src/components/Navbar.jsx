@@ -41,7 +41,8 @@ export default function Navbar() {
   // Dynamically filter NavItems: remove Login item if logged in, add Profile item
   const navItems = [
     { name: 'Home', path: '/' },
-    { name: 'Marketplace', path: '/dashboard' },
+    { name: 'Dashboard', path: '/dashboard' },
+    { name: 'AI Advisor', path: '/dashboard/ai-advisor' },
     { name: 'About Us', path: '/about' },
   ];
 

@@ -10,13 +10,14 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './components/ui';
 import AIAdvisor from './components/AIAdvisor';
+import DevToolsNetworkMonitor from './components/DevToolsNetworkMonitor';
 
 export default function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
         <BrowserRouter>
-          <div className="flex flex-col min-h-screen bg-slate-50/20 dark:bg-slate-955 text-slate-800 dark:text-slate-100 antialiased transition-colors duration-300">
+          <div className="flex flex-col min-h-screen bg-slate-50/20 dark:bg-slate-955 text-slate-800 dark:text-slate-100 antialiased transition-colors duration-300 pb-44">
             {/* Navbar */}
             <Navbar />
 
@@ -44,6 +45,9 @@ export default function App() {
 
             {/* Footer */}
             <Footer />
+
+            {/* Global DevTools Network Simulator */}
+            <DevToolsNetworkMonitor />
           </div>
         </BrowserRouter>
       </ToastProvider>

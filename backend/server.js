@@ -236,120 +236,118 @@ const getBadgeByCropType = (cropType) => {
 // --- DATABASE SEEDING ---
 async function seedDatabase() {
   try {
-    const listingCount = await prisma.listing.count();
-    if (listingCount === 0) {
-      console.log('Seeding initial listings...');
-      await prisma.listing.createMany({
-        data: [
-          {
-            title: 'Premium Sharbati Wheat',
-            description: 'High-gluten premium Sharbati wheat, freshly harvested, sun-dried, and ready for milling.',
-            price: 2450,
-            unit: 'quintal',
-            quantity: 120,
-            location: 'Sehore, MP',
-            badge: 'Grains',
-            image: '',
-            farmer: 'Ramesh Patel',
-            cropType: 'Wheat'
-          },
-          {
-            title: 'Organic Jyoti Potatoes',
-            description: 'Firm, high-starch Jyoti potatoes, perfect for manufacturing potato chips and starches.',
-            price: 1800,
-            unit: 'quintal',
-            quantity: 250,
-            location: 'Nashik, Maharashtra',
-            badge: 'Tubers',
-            image: '',
-            farmer: 'Sanjay Deshmukh',
-            cropType: 'Potato'
-          },
-          {
-            title: 'Basmati Rice',
-            description: 'Aromatic long-grain basmati rice, aged for 12 months for supreme flavor.',
-            price: 3200,
-            unit: 'quintal',
-            quantity: 80,
-            location: 'Karnal, Haryana',
-            badge: 'Grains',
-            image: '',
-            farmer: 'Ramesh Patel',
-            cropType: 'Rice'
-          },
-          {
-            title: 'Sweet Sugarcane',
-            description: 'Freshly harvested sugarcane, high sucrose content, ideal for sugar processing.',
-            price: 350,
-            unit: 'quintal',
-            quantity: 500,
-            location: 'Kolhapur, Maharashtra',
-            badge: 'Stalks',
-            image: '',
-            farmer: 'Sanjay Deshmukh',
-            cropType: 'Sugarcane'
-          }
-        ]
-      });
-    }
+    console.log('Clearing database to reset seed data...');
+    await prisma.listing.deleteMany({});
+    await prisma.order.deleteMany({});
+    await prisma.user.deleteMany({});
 
-    const orderCount = await prisma.order.count();
-    if (orderCount === 0) {
-      console.log('Seeding initial orders...');
-      await prisma.order.createMany({
-        data: [
-          {
-            id: 'ORD-1001',
-            crop: 'Basmati Rice',
-            processor: 'Bikanervala',
-            seller: 'Ramesh Patel',
-            qty: '50 Quintals',
-            total: '₹1,60,000',
-            status: 'Delivered',
-            date: '15 Jun 2026'
-          },
-          {
-            id: 'ORD-1002',
-            crop: 'Jyoti Potatoes',
-            processor: 'Haldiram Foods',
-            seller: 'Sanjay Deshmukh',
-            qty: '150 Quintals',
-            total: '₹2,70,000',
-            status: 'Accepted',
-            date: '21 Jun 2026'
-          },
-          {
-            id: 'ORD-1003',
-            crop: 'Sharbati Wheat',
-            processor: 'ITC Limited',
-            seller: 'Ramesh Patel',
-            qty: '80 Quintals',
-            total: '₹1,96,000',
-            status: 'Pending',
-            date: '20 Jun 2026'
-          }
-        ]
-      });
-    }
+    console.log('Seeding initial listings...');
+    await prisma.listing.createMany({
+      data: [
+        {
+          title: 'Premium Sharbati Wheat',
+          description: 'High-gluten premium Sharbati wheat, freshly harvested, sun-dried, and ready for milling.',
+          price: 2450,
+          unit: 'quintal',
+          quantity: 120,
+          location: 'Sehore, MP',
+          badge: 'Grains',
+          image: '',
+          farmer: 'farmer@agrolink.com',
+          cropType: 'Wheat'
+        },
+        {
+          title: 'Organic Jyoti Potatoes',
+          description: 'Firm, high-starch Jyoti potatoes, perfect for manufacturing potato chips and starches.',
+          price: 1800,
+          unit: 'quintal',
+          quantity: 250,
+          location: 'Nashik, Maharashtra',
+          badge: 'Tubers',
+          image: '',
+          farmer: 'farmer@agrolink.com',
+          cropType: 'Potato'
+        },
+        {
+          title: 'Basmati Rice',
+          description: 'Aromatic long-grain basmati rice, aged for 12 months for supreme flavor.',
+          price: 3200,
+          unit: 'quintal',
+          quantity: 80,
+          location: 'Karnal, Haryana',
+          badge: 'Grains',
+          image: '',
+          farmer: 'farmer@agrolink.com',
+          cropType: 'Rice'
+        },
+        {
+          title: 'Sweet Sugarcane',
+          description: 'Freshly harvested sugarcane, high sucrose content, ideal for sugar processing.',
+          price: 350,
+          unit: 'quintal',
+          quantity: 500,
+          location: 'Kolhapur, Maharashtra',
+          badge: 'Stalks',
+          image: '',
+          farmer: 'farmer@agrolink.com',
+          cropType: 'Sugarcane'
+        }
+      ]
+    });
 
-    const userCount = await prisma.user.count();
-    if (userCount === 0) {
-      console.log('Seeding initial users...');
-      await prisma.user.createMany({
-        data: [
-          {
-            email: 'farmer@agrolink.com',
-            password: hashPassword('farmer123'),
-            role: 'farmer'
-          },
-          {
-            email: 'processor@agrolink.com',
-            password: hashPassword('processor123'),
-            role: 'processor'
-          }
-        ]
-      });
-    }
+    console.log('Seeding initial orders...');
+    await prisma.order.createMany({
+      data: [
+        {
+          id: 'ORD-1001',
+          crop: 'Basmati Rice',
+          processor: 'processor@agrolink.com',
+          seller: 'farmer@agrolink.com',
+          qty: '50 Quintals',
+          total: '₹1,60,000',
+          status: 'Delivered',
+          date: '15 Jun 2026'
+        },
+        {
+          id: 'ORD-1002',
+          crop: 'Jyoti Potatoes',
+          processor: 'processor@agrolink.com',
+          seller: 'farmer@agrolink.com',
+          qty: '150 Quintals',
+          total: '₹2,70,000',
+          status: 'Accepted',
+          date: '21 Jun 2026'
+        },
+        {
+          id: 'ORD-1003',
+          crop: 'Sharbati Wheat',
+          processor: 'processor@agrolink.com',
+          seller: 'farmer@agrolink.com',
+          qty: '80 Quintals',
+          total: '₹1,96,000',
+          status: 'Pending',
+          date: '20 Jun 2026'
+        }
+      ]
+    });
+
+    console.log('Seeding initial users...');
+    await prisma.user.createMany({
+      data: [
+        {
+          email: 'farmer@agrolink.com',
+          password: hashPassword('farmer123'),
+          role: 'farmer',
+          updatedAt: new Date()
+        },
+        {
+          email: 'processor@agrolink.com',
+          password: hashPassword('processor123'),
+          role: 'processor',
+          updatedAt: new Date()
+        }
+      ]
+    });
   } catch (error) {
     console.error('Error seeding database:', error);
   }

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Bot, AlertTriangle, CheckCircle2, RefreshCw, FileText, Send, Zap, ShieldAlert, Cpu, ChevronDown, Terminal, X, Activity } from 'lucide-react';
 import { Button, Input, Loader, useToast } from './ui';
+import { loggedFetch } from '../utils/api';
 
 export default function AIAdvisor() {
   const { addToast } = useToast();
@@ -18,12 +19,21 @@ export default function AIAdvisor() {
   const [loading, setLoading] = useState(false);
   const [loadingTip, setLoadingTip] = useState('Analyzing local APMC mandi volumes...');
   const [aiResult, setAiResult] = useState(null);
+  const [displayedAdvice, setDisplayedAdvice] = useState('');
+
+  // Typing animation ref
+  const typingIntervalRef = useRef(null);
 
   // DevTools Simulation State
   const [consoleOpen, setConsoleOpen] = useState(true);
-  const [networkLogs, setNetworkLogs] = useState([
-    // Default initial empty log state or sample log
-  ]);
+  const [networkLogs, setNetworkLogs] = useState([]);
+
+  // Clear typing interval on unmount
+  useEffect(() => {
+    return () => {
+      if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+    };
+  }, []);
 
   // Handle Quick Sync from Inventory
   const handleInventorySyncChange = (e) => {
@@ -77,8 +87,20 @@ export default function AIAdvisor() {
       return;
     }
 
+    const qtyVal = Number(quantity);
+    if (isNaN(qtyVal) || qtyVal <= 0) {
+      addToast('Quantity must be a valid positive number.', 'error');
+      return;
+    }
+
+    // Clear any previous typing animation
+    if (typingIntervalRef.current) {
+      clearInterval(typingIntervalRef.current);
+    }
+
     setLoading(true);
     setAiResult(null);
+    setDisplayedAdvice('');
 
     // Initial info toast
     addToast('Connecting to AgroLink AI Advisor engines...', 'info', 2500);
@@ -86,12 +108,12 @@ export default function AIAdvisor() {
     const startTime = Date.now();
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/ai/advise', {
+      const response = await loggedFetch('http://127.0.0.1:5000/api/ai/advise', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           cropName,
-          quantity: Number(quantity),
+          quantity: qtyVal,
           unit,
           location,
           query,
@@ -137,6 +159,25 @@ export default function AIAdvisor() {
 
       setAiResult(data);
       addToast('AI Market & Advisory report generated successfully!', 'success');
+
+      // Start typing simulation
+      const fullText = data.marketAdvice || '';
+      let currentIdx = 0;
+      setDisplayedAdvice('');
+
+      typingIntervalRef.current = setInterval(() => {
+        setDisplayedAdvice((prev) => {
+          if (currentIdx < fullText.length) {
+            const nextChar = fullText[currentIdx];
+            currentIdx++;
+            return prev + nextChar;
+          } else {
+            if (typingIntervalRef.current) clearInterval(typingIntervalRef.current);
+            return prev;
+          }
+        });
+      }, 6); // Faster typing speed for fluid display
+      
     } catch (err) {
       console.error('Advisor Error:', err);
       addToast(err.message || 'API Connection Timeout (HTTP 429 Rate Limit Exceeded). Please retry in 60 seconds.', 'error', 5000);
@@ -318,8 +359,8 @@ export default function AIAdvisor() {
               {/* AI Market Analysis & Advice */}
               <div className="space-y-1.5">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">AI MARKET ANALYSIS & ADVICE</span>
-                <div className="p-4 bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 leading-relaxed">
-                  {aiResult.marketAdvice}
+                <div className="p-4 bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 leading-relaxed min-h-[80px]">
+                  {displayedAdvice}
                 </div>
               </div>
 

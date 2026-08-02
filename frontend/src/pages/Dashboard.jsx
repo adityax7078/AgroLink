@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { LayoutDashboard, PlusCircle, CheckCircle, Clock, ShoppingBag, Sparkles, MapPin, DollarSign, Calendar, Sliders, MessageSquare, Trash2, Edit } from 'lucide-react';
 import { Button, Input, Modal, Loader, useToast } from '../components/ui';
 import { loggedFetch } from '../utils/api';
+import { API_URL } from '../config';
 
 export default function Dashboard() {
   const { addToast } = useToast();
@@ -65,11 +66,11 @@ export default function Dashboard() {
     setLoading(true);
     const headers = getAuthHeaders();
     Promise.all([
-      loggedFetch('http://127.0.0.1:5000/api/listings').then(res => {
+      loggedFetch(`${API_URL}/api/listings`).then(res => {
         if (!res.ok) throw new Error('Failed to fetch listings');
         return res.json();
       }),
-      loggedFetch('http://127.0.0.1:5000/api/orders', { headers }).then(res => {
+      loggedFetch(`${API_URL}/api/orders`, { headers }).then(res => {
         if (!res.ok) throw new Error('Failed to fetch orders');
         return res.json();
       })
@@ -104,7 +105,7 @@ export default function Dashboard() {
     setAiLoading(true);
     setShowAISuggestion(true);
     
-    loggedFetch(`http://127.0.0.1:5000/api/ai/pricing?cropType=${cropType}&quantity=${quantity}`)
+    loggedFetch(`${API_URL}/api/ai/pricing?cropType=${cropType}&quantity=${quantity}`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to generate pricing suggestion');
         return res.json();
@@ -145,7 +146,7 @@ export default function Dashboard() {
     const title = `Premium ${cropType} Harvest`;
     const loggedInEmail = currentUser?.email || 'Anonymous Farmer';
 
-    loggedFetch('http://127.0.0.1:5000/api/listings', {
+    loggedFetch(`${API_URL}/api/listings`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({
@@ -178,7 +179,7 @@ export default function Dashboard() {
 
   const handleUpdateOrderStatus = (orderId, newStatus) => {
     setLoading(true);
-    loggedFetch(`http://127.0.0.1:5000/api/orders/${orderId}`, {
+    loggedFetch(`${API_URL}/api/orders/${orderId}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({ status: newStatus })
@@ -204,7 +205,7 @@ export default function Dashboard() {
 
   const executeDeleteListing = (id) => {
     setLoading(true);
-    loggedFetch(`http://127.0.0.1:5000/api/listings/${id}`, {
+    loggedFetch(`${API_URL}/api/listings/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders()
     })
@@ -250,7 +251,7 @@ export default function Dashboard() {
     }
 
     setLoading(true);
-    loggedFetch(`http://127.0.0.1:5000/api/listings/${editingListing.id}`, {
+    loggedFetch(`${API_URL}/api/listings/${editingListing.id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify({
@@ -280,7 +281,7 @@ export default function Dashboard() {
     const orderTotal = listing.price * listing.quantity;
     const loggedInEmail = currentUser?.email || 'Anonymous Processor';
 
-    loggedFetch('http://127.0.0.1:5000/api/orders', {
+    loggedFetch(`${API_URL}/api/orders`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({

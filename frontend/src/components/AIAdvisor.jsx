@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Bot, AlertTriangle, CheckCircle2, RefreshCw, FileText, Send, Zap, ShieldAlert, Cpu, ChevronDown, Terminal, X, Activity } from 'lucide-react';
 import { Button, Input, Loader, useToast } from './ui';
 import { loggedFetch } from '../utils/api';
+import { API_URL } from '../config';
 
 export default function AIAdvisor() {
   const { addToast } = useToast();
@@ -108,7 +109,7 @@ export default function AIAdvisor() {
     const startTime = Date.now();
 
     try {
-      const response = await loggedFetch('http://127.0.0.1:5000/api/ai/advise', {
+      const response = await loggedFetch(`${API_URL}/api/ai/advise`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

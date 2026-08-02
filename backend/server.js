@@ -16,10 +16,12 @@ const PORT = process.env.PORT || 5000;
 const prisma = new PrismaClient();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'agrolink_jwt_secret_26101094';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
 
-// Enable CORS for frontend development server (allows any origin dynamically for local development)
+// Enable CORS allowing configured production URL and local development origins
 app.use(cors({
-  origin: true,
+  origin: [FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -92,7 +94,7 @@ if (hasRealGoogleKeys) {
   passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: 'http://localhost:5000/api/auth/google/callback'
+      callbackURL: `${BACKEND_URL}/api/auth/google/callback`
     },
     async (accessToken, refreshToken, profile, done) => {
       const email = profile.emails && profile.emails[0] ? profile.emails[0].value : `${profile.id}@google.com`;
@@ -120,7 +122,7 @@ if (hasRealGithubKeys) {
   passport.use(new GitHubStrategy({
       clientID: process.env.GITHUB_CLIENT_ID,
       clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: 'http://localhost:5000/api/auth/github/callback'
+      callbackURL: `${BACKEND_URL}/api/auth/github/callback`
     },
     async (accessToken, refreshToken, profile, done) => {
       const email = profile.emails && profile.emails[0] ? profile.emails[0].value : `${profile.username || profile.id}@github.com`;
@@ -205,7 +207,7 @@ function serveSimulatedConsentPage(req, res, provider) {
               <button type="submit" id="mock-authorize-btn" class="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-slate-950 font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 transition-all text-sm cursor-pointer">
                 Authorize AgroLink App
               </button>
-              <a href="http://localhost:5173/login" class="w-full text-center border border-slate-700 hover:bg-slate-700/35 text-slate-400 py-3 rounded-xl transition-all text-sm">
+              <a href="${FRONTEND_URL}/login" class="w-full text-center border border-slate-700 hover:bg-slate-700/35 text-slate-400 py-3 rounded-xl transition-all text-sm">
                 Cancel
               </a>
             </div>
@@ -482,14 +484,14 @@ app.get('/api/auth/google', (req, res, next) => {
 
 app.get('/api/auth/google/callback', (req, res, next) => {
   if (hasRealGoogleKeys) {
-    passport.authenticate('google', { failureRedirect: 'http://localhost:5173/login?error=oauth_failed' }, (err, user) => {
-      if (err || !user) return res.redirect('http://localhost:5173/login?error=oauth_failed');
+    passport.authenticate('google', { failureRedirect: `${FRONTEND_URL}/login?error=oauth_failed` }, (err, user) => {
+      if (err || !user) return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
-      res.redirect(`http://localhost:5173/login?token=${token}&email=${encodeURIComponent(user.email)}&role=${user.role}&id=${user.id}`);
+      res.redirect(`${FRONTEND_URL}/login?token=${token}&email=${encodeURIComponent(user.email)}&role=${user.role}&id=${user.id}`);
     })(req, res, next);
   } else {
     res.status(400).send('Google Strategy is not configured.');
@@ -507,14 +509,14 @@ app.get('/api/auth/github', (req, res, next) => {
 
 app.get('/api/auth/github/callback', (req, res, next) => {
   if (hasRealGithubKeys) {
-    passport.authenticate('github', { failureRedirect: 'http://localhost:5173/login?error=oauth_failed' }, (err, user) => {
-      if (err || !user) return res.redirect('http://localhost:5173/login?error=oauth_failed');
+    passport.authenticate('github', { failureRedirect: `${FRONTEND_URL}/login?error=oauth_failed` }, (err, user) => {
+      if (err || !user) return res.redirect(`${FRONTEND_URL}/login?error=oauth_failed`);
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
         JWT_SECRET,
         { expiresIn: '7d' }
       );
-      res.redirect(`http://localhost:5173/login?token=${token}&email=${encodeURIComponent(user.email)}&role=${user.role}&id=${user.id}`);
+      res.redirect(`${FRONTEND_URL}/login?token=${token}&email=${encodeURIComponent(user.email)}&role=${user.role}&id=${user.id}`);
     })(req, res, next);
   } else {
     res.status(400).send('GitHub Strategy is not configured.');
@@ -554,7 +556,7 @@ app.post('/api/auth/oauth-mock-callback', async (req, res, next) => {
       { expiresIn: '7d' }
     );
 
-    res.redirect(`http://localhost:5173/login?token=${token}&email=${encodeURIComponent(user.email)}&role=${user.role}&id=${user.id}`);
+    res.redirect(`${FRONTEND_URL}/login?token=${token}&email=${encodeURIComponent(user.email)}&role=${user.role}&id=${user.id}`);
   } catch (err) {
     next(err);
   }

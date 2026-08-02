@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Hero from '../components/Hero';
 import Card from '../components/Card';
+import { API_URL } from '../config';
 import wheatImage from '../assets/crop_wheat.png';
 import potatoImage from '../assets/crop_potato.png';
 import { Leaf, ArrowRight, ShieldCheck, Cpu } from 'lucide-react';
@@ -14,7 +15,7 @@ export default function Home() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:5000/api/listings')
+    fetch(`${API_URL}/api/listings`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch listings');
         return res.json();

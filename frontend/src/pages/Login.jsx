@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldAlert, KeyRound, Mail, UserCheck, Sprout } from 'lucide-react';
 import { Input, Button, useToast } from '../components/ui';
+import { API_URL } from '../config';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ export default function Login() {
       addToast('Please fill in all fields.', 'error');
       return;
     }
-    fetch('http://127.0.0.1:5000/api/auth/login', {
+    fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, role: selectedRole })
@@ -77,7 +78,7 @@ export default function Login() {
       addToast('Passwords do not match.', 'error');
       return;
     }
-    fetch('http://127.0.0.1:5000/api/auth/register', {
+    fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, role: selectedRole })
@@ -109,7 +110,7 @@ export default function Login() {
       addToast('Passwords do not match.', 'error');
       return;
     }
-    fetch('http://127.0.0.1:5000/api/auth/forgot-password', {
+    fetch(`${API_URL}/api/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, newPassword: password })
@@ -244,7 +245,7 @@ export default function Login() {
                 </Button>
               </form>
 
-              {/* OAuth Options Divider */}
+              {/* OAuth options divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center" aria-hidden="true">
                   <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
@@ -257,7 +258,7 @@ export default function Login() {
               {/* OAuth buttons */}
               <div className="grid grid-cols-2 gap-4">
                 <a
-                  href="http://localhost:5000/api/auth/google"
+                  href={`${API_URL}/api/auth/google`}
                   id="oauth-google-btn"
                   className="flex items-center justify-center gap-2 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-slate-350 transition-all font-semibold text-xs shadow-sm bg-white dark:bg-slate-900 cursor-pointer animate-fade-in"
                 >
@@ -270,7 +271,7 @@ export default function Login() {
                   <span>Google</span>
                 </a>
                 <a
-                  href="http://localhost:5000/api/auth/github"
+                  href={`${API_URL}/api/auth/github`}
                   id="oauth-github-btn"
                   className="flex items-center justify-center gap-2 px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-slate-350 transition-all font-semibold text-xs shadow-sm bg-white dark:bg-slate-900 cursor-pointer animate-fade-in"
                 >

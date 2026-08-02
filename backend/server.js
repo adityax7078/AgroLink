@@ -106,10 +106,10 @@ const hasRealGithubKeys = process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLI
 
 if (hasRealGoogleKeys) {
   passport.use(new GoogleStrategy({
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${BACKEND_URL}/api/auth/google/callback`
-    },
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: `${BACKEND_URL}/api/auth/google/callback`
+  },
     async (accessToken, refreshToken, profile, done) => {
       const email = profile.emails && profile.emails[0] ? profile.emails[0].value : `${profile.id}@google.com`;
       try {
@@ -134,10 +134,10 @@ if (hasRealGoogleKeys) {
 
 if (hasRealGithubKeys) {
   passport.use(new GitHubStrategy({
-      clientID: process.env.GITHUB_CLIENT_ID,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-      callbackURL: `${BACKEND_URL}/api/auth/github/callback`
-    },
+    clientID: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    callbackURL: `${BACKEND_URL}/api/auth/github/callback`
+  },
     async (accessToken, refreshToken, profile, done) => {
       const email = profile.emails && profile.emails[0] ? profile.emails[0].value : `${profile.username || profile.id}@github.com`;
       try {
@@ -1107,7 +1107,7 @@ app.listen(PORT, '0.0.0.0', async () => {
   console.log(` AgroLink API Backend started successfully!`);
   console.log(` Listening on: http://127.0.0.1:${PORT}`);
   console.log(`==================================================`);
-  
+
   // Seed the database
   await seedDatabase();
 });

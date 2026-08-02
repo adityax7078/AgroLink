@@ -371,6 +371,22 @@ async function seedDatabase() {
 
 // --- ENDPOINTS ---
 
+// GET / - Root route (prevents "Cannot GET /" error on browser/health checks)
+app.get('/', (req, res) => {
+  res.status(200).json({
+    service: 'AgroLink API',
+    version: '1.0.0',
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/health',
+      listings: '/api/listings',
+      orders: '/api/orders',
+      auth: '/api/auth/login | /api/auth/register'
+    }
+  });
+});
+
 // GET /health - Health check endpoint for Render uptime monitoring
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString(), service: 'AgroLink API' });

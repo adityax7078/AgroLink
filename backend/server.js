@@ -20,8 +20,22 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${PORT}`;
 
 // Enable CORS allowing configured production URL and local development origins
+const ALLOWED_ORIGINS = [
+  FRONTEND_URL,
+  'https://agro-link-rouge.vercel.app',
+  'https://www.agro-link-rouge.vercel.app',
+  BACKEND_URL,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+];
+
 app.use(cors({
-  origin: [FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, Render health checks, server-to-server)
+    if (!origin) return callback(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    return callback(new Error(`CORS: Origin '${origin}' not allowed`), false);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -356,6 +370,11 @@ async function seedDatabase() {
 }
 
 // --- ENDPOINTS ---
+
+// GET /health - Health check endpoint for Render uptime monitoring
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString(), service: 'AgroLink API' });
+});
 
 // --- AUTH ENDPOINTS ---
 

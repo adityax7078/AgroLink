@@ -392,6 +392,43 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString(), service: 'AgroLink API' });
 });
 
+// GET /api/debug-database - Debug database connection and check table records
+app.get('/api/debug-database', async (req, res) => {
+  const diagnostics = {
+    connected: false,
+    provider: prisma._activeProvider || 'unknown',
+    counts: { listings: 0, orders: 0, users: 0 },
+    error: null,
+    env: {}
+  };
+
+  // Mask sensitive env variables
+  for (const key in process.env) {
+    const val = process.env[key];
+    if (key.includes('SECRET') || key.includes('PASSWORD') || key.includes('KEY') || key.includes('URL') || key.includes('ID')) {
+      diagnostics.env[key] = val ? `${val.substring(0, Math.min(8, val.length))}...${val.substring(Math.max(0, val.length - 4))}` : 'undefined';
+    } else {
+      diagnostics.env[key] = val;
+    }
+  }
+
+  try {
+    // Run simple count queries to test connection and schema
+    diagnostics.counts.listings = await prisma.listing.count();
+    diagnostics.counts.orders = await prisma.order.count();
+    diagnostics.counts.users = await prisma.user.count();
+    diagnostics.connected = true;
+  } catch (err) {
+    diagnostics.error = {
+      message: err.message,
+      code: err.code,
+      meta: err.meta
+    };
+  }
+
+  res.status(diagnostics.connected ? 200 : 500).json(diagnostics);
+});
+
 // --- AUTH ENDPOINTS ---
 
 // POST /api/auth/register - Register a new user account

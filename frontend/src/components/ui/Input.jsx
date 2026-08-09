@@ -24,7 +24,8 @@ export function Input({
   id,
   ...rest
 }) {
-  const inputId = id || `input-${Math.random().toString(36).substring(2, 11)}`;
+  const uniqueId = React.useId();
+  const inputId = id || uniqueId;
 
   return (
     <div className={`flex flex-col space-y-1.5 w-full ${className}`}>

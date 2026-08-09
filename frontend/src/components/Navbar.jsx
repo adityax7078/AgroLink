@@ -48,8 +48,6 @@ export default function Navbar() {
 
   if (user) {
     navItems.push({ name: 'My Profile', path: '/profile' });
-  } else {
-    navItems.push({ name: 'Portal Login', path: '/login' });
   }
 
   return (

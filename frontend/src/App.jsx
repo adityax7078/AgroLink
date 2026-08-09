@@ -10,7 +10,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './components/ui';
 import AIAdvisor from './components/AIAdvisor';
-import DevToolsNetworkMonitor from './components/DevToolsNetworkMonitor';
 
 export default function App() {
   return (
@@ -45,9 +44,6 @@ export default function App() {
 
             {/* Footer */}
             <Footer />
-
-            {/* Global DevTools Network Simulator */}
-            <DevToolsNetworkMonitor />
           </div>
         </BrowserRouter>
       </ToastProvider>
